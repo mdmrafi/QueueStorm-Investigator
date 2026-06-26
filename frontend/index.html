@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueStorm Investigator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <span class="logo">⚡</span>
+            <div>
+                <h1>QueueStorm Investigator</h1>
+                <p class="subtitle">Complaint investigation copilot</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="layout">
+        <!-- ─── LEFT: Input form ─── -->
+        <section class="card" id="formCard">
+            <div class="card-header">
+                <h2>Submit a ticket</h2>
+                <select id="samplePicker" class="sample-picker">
+                    <option value="">— Load sample case —</option>
+                </select>
+            </div>
+
+            <form id="ticketForm" autocomplete="off">
+                <div class="row">
+                    <label>
+                        Ticket ID <span class="req">*</span>
+                        <input type="text" name="ticket_id" id="ticket_id" required placeholder="TKT-001">
+                    </label>
+                    <label>
+                        Campaign context
+                        <input type="text" name="campaign_context" id="campaign_context" placeholder="boishakh_bonanza_day_1">
+                    </label>
+                </div>
+
+                <label class="full">
+                    Complaint <span class="req">*</span>
+                    <textarea name="complaint" id="complaint" required rows="4"
+                        placeholder="Paste the customer's complaint here (English / বাংলা / Banglish)…"></textarea>
+                </label>
+
+                <div class="row three">
+                    <label>
+                        Language
+                        <select name="language" id="language">
+                            <option value="">auto-detect</option>
+                            <option value="en">en</option>
+                            <option value="bn">bn</option>
+                            <option value="mixed">mixed</option>
+                        </select>
+                    </label>
+                    <label>
+                        Channel
+                        <select name="channel" id="channel">
+                            <option value="">—</option>
+                            <option value="in_app_chat">in_app_chat</option>
+                            <option value="call_center">call_center</option>
+                            <option value="email">email</option>
+                            <option value="merchant_portal">merchant_portal</option>
+                            <option value="field_agent">field_agent</option>
+                        </select>
+                    </label>
+                    <label>
+                        User type
+                        <select name="user_type" id="user_type">
+                            <option value="">—</option>
+                            <option value="customer">customer</option>
+                            <option value="merchant">merchant</option>
+                            <option value="agent">agent</option>
+                            <option value="unknown">unknown</option>
+                        </select>
+                    </label>
+                </div>
+
+                <fieldset class="txn-fieldset">
+                    <legend>
+                        Transaction history
+                        <button type="button" id="addTxnBtn" class="btn btn-secondary btn-sm">+ Add transaction</button>
+                    </legend>
+                    <div id="txnContainer"></div>
+                    <p class="hint">Leave empty for safety-only reports (e.g. phishing).</p>
+                </fieldset>
+
+                <details class="meta-details">
+                    <summary>Metadata (optional key/value pairs)</summary>
+                    <div id="metaContainer"></div>
+                    <button type="button" id="addMetaBtn" class="btn btn-secondary btn-sm">+ Add metadata field</button>
+                </details>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Analyze ticket</button>
+                    <button type="button" class="btn btn-ghost" id="resetBtn">Reset</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ─── RIGHT: Verdict display ─── -->
+        <section class="card verdict-card" id="verdictCard">
+            <div class="card-header">
+                <h2>Investigation verdict</h2>
+                <span id="verdictMeta" class="verdict-meta"></span>
+            </div>
+            <div id="verdictBody" class="verdict-body empty">
+                <p class="placeholder">Submit a ticket to see the structured verdict here.</p>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <!--
+        Backend wiring (priority order):
+          1. ?api=https://queuestorm-investigator-bmu6.onrender.com  (full URL override)
+          2. __API_PORT__ placeholder replaced at deploy time
+          3. Default same-host :8000 (local dev)
+
+        The auto-redirect script below only runs when the page is served from a
+        real deployment host (not localhost) AND no ?api= or ?api_port= is set.
+        It rewrites the URL once so app.js sees the right API base.
+    -->
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          if (p.get('api') || p.get('api_port')) return;
+          var host = location.hostname;
+          // Skip on local dev — there we want the localhost:8000 default
+          if (host === 'localhost' || host === '127.0.0.1' || host.endsWith('.local')) return;
+          var backend = 'https://queuestorm-investigator-bmu6.onrender.com';
+          p.set('api', backend);
+          location.replace(location.pathname + '?' + p.toString() + location.hash);
+        } catch (e) { /* no-op: app.js will fall back to its default port */ }
+      })();
+    </script>
+    <script>window.__API_PORT__ = '__API_PORT__';</script>
+    <script src="app.js"></script>
+</body>
+</html>
